@@ -911,16 +911,27 @@ async def videorag_query_multiple_choice(
         system_prompt=sys_prompt,
         use_cache=False,
     )
-    while True:
+    # Bounded retry. This was `while True` with no cap and no backoff: an item the
+    # model keeps answering in prose spins forever and bills every lap, which makes
+    # an unattended batch run unsafe. Give it a few tries, then salvage the letter
+    # from the raw text rather than looping -- a malformed reply usually still
+    # contains the answer.
+    MAX_JSON_RETRIES = 4
+    for attempt in range(MAX_JSON_RETRIES):
         try:
             json_response = json.loads(response)
             assert "Answer" in json_response and "Explanation" in json_response
             return json_response
         except Exception as e:
-            logger.info(f"Response is not valid JSON for query {query}. Found {e}. Retrying...")
+            logger.info(f"Response is not valid JSON for query {query}. Found {e}. "
+                        f"Retrying ({attempt + 1}/{MAX_JSON_RETRIES})...")
             response = await use_model_func(
                 query,
                 system_prompt=sys_prompt,
                 use_cache=False,
             )
+    logger.warning(f"Gave up on valid JSON after {MAX_JSON_RETRIES} attempts; "
+                   f"returning the raw response for downstream parsing.")
+    return {"Answer": str(response), "Explanation": "",
+            "_json_retries_exhausted": True}
     
