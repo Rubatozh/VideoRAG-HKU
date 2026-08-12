@@ -1,5 +1,5 @@
 import os
-os.environ["OPENAI_API_KEY"] = ""
+os.environ["OPENAI_API_KEY"] = open(os.path.expanduser("~/.config/openai/api_key")).read().strip()
 import re
 import time
 import json
