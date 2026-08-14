@@ -32,6 +32,16 @@ from ._videoutil import (
     retrieved_segment_caption,
 )
 
+# >>> BENCH SEAM BEGIN (multimodal-RAG) -- strip this block to revert
+# Identity-defaulting hooks; with none installed this block changes nothing.
+try:
+    from . import bench_hooks as _bench
+except Exception:                       # pragma: no cover
+    class _bench:                       # no-op fallback == upstream
+        frame_times = staticmethod(lambda v, **k: v)
+        segments = staticmethod(lambda v, **k: v)
+        evidence = staticmethod(lambda v, **k: v)
+# <<< BENCH SEAM END
 def chunking_by_token_size(
     tokens_list: list[list[int]],
     doc_keys,
@@ -657,6 +667,9 @@ async def videorag_query(
             eval(x.split('_')[-1]) # index
         )
     )
+    # >>> BENCH SEAM BEGIN (multimodal-RAG) -- strip this block to revert
+    retrieved_segments = _bench.segments(retrieved_segments, query=query)
+    # <<< BENCH SEAM END
     print(query_for_entity_retrieval)
     print(f"Retrieved Text Segments {entity_retrieved_segments}")
     print(query_for_visual_retrieval)
@@ -906,6 +919,9 @@ async def videorag_query_multiple_choice(
         chunk_data=retreived_chunk_context,
         response_type=query_param.response_type
     )
+    # >>> BENCH SEAM BEGIN (multimodal-RAG) -- strip this block to revert
+    sys_prompt = _bench.evidence(sys_prompt, kind="hku_context")
+    # <<< BENCH SEAM END
     response = await use_model_func(
         query,
         system_prompt=sys_prompt,

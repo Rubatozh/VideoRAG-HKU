@@ -54,6 +54,16 @@ from ._videoutil import(
     merge_segment_information,
     saving_video_segments,
 )
+# >>> BENCH SEAM BEGIN (multimodal-RAG) -- strip this block to revert
+# Identity-defaulting hooks; with none installed this block changes nothing.
+try:
+    from . import bench_hooks as _bench
+except Exception:                       # pragma: no cover
+    class _bench:                       # no-op fallback == upstream
+        frame_times = staticmethod(lambda v, **k: v)
+        segments = staticmethod(lambda v, **k: v)
+        evidence = staticmethod(lambda v, **k: v)
+# <<< BENCH SEAM END
 
 
 @dataclass
@@ -219,6 +229,14 @@ class VideoRAG:
                 self.rough_num_frames_per_segment,
                 self.audio_output_format,
             )
+            # >>> BENCH SEAM BEGIN (multimodal-RAG) -- strip this block to revert
+            # INPUT POOL. Replaces the per-segment frame timestamps with the pool's own,
+            # leaving segment naming, audio extraction and everything downstream intact.
+            segment_times_info = _bench.frame_times(
+                segment_times_info, video_path=video_path,
+                segment_length=self.video_segment_length,
+                num_frames=self.rough_num_frames_per_segment)
+            # <<< BENCH SEAM END
             
             # Step2: obtain transcript with whisper
             transcripts = speech_to_text(
