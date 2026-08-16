@@ -6,7 +6,20 @@ from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
+# >>> BENCH SEAM BEGIN (multimodal-RAG) -- strip this block to revert
+# Identity-defaulting hooks; with none installed this block changes nothing.
+try:
+    from .. import bench_hooks as _bench
+except Exception:                       # pragma: no cover
+    class _bench:                       # no-op fallback == upstream
+        frames_for = staticmethod(lambda v, **k: None)
+# <<< BENCH SEAM END
 def encode_video(video, frame_times):
+    # >>> BENCH SEAM BEGIN (multimodal-RAG) -- strip this block to revert
+    _sub = _bench.frames_for(frame_times, video=video)
+    if _sub is not None:
+        return _sub
+    # <<< BENCH SEAM END
     frames = []
     for t in frame_times:
         frames.append(video.get_frame(t))

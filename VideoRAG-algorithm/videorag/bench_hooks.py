@@ -72,3 +72,25 @@ def segments(retrieved, **kw):
 def evidence(prompt, **kw):
     """OUTPUT. The assembled context immediately before the answerer reads it."""
     return _apply("evidence", prompt, **kw)
+
+
+def frames_for(frame_times, **kw):
+    """PIXELS. Return replacement PIL frames for `frame_times`, or None.
+
+    Unlike the other hooks this one may return None, meaning "not handled --
+    run upstream". That is what lets ONE seam cover both captioners: an
+    unknown video falls through instead of being silently substituted.
+
+    It exists because `frame_times` alone was not enough. `encode_video` is
+    the single place both `segment_caption` (index time) and
+    `retrieved_segment_caption` (QUERY time) decode pixels, and the query-time
+    one computed its own `np.linspace` over the raw video -- so hku's answer
+    evidence came from moments the benchmark's input pool never authorised.
+    Substituting here unifies the moments AND the pixels, and costs less than
+    upstream: a cached JPEG read instead of moviepy random access.
+    """
+    fn = _HOOKS.get("frames_for")
+    if fn is None:
+        return None                       # <- the upstream path, unchanged
+    _FIRED["frames_for"] = _FIRED.get("frames_for", 0) + 1
+    return fn(frame_times, **kw)
