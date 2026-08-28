@@ -667,9 +667,6 @@ async def videorag_query(
             eval(x.split('_')[-1]) # index
         )
     )
-    # >>> BENCH SEAM BEGIN (multimodal-RAG) -- strip this block to revert
-    retrieved_segments = _bench.segments(retrieved_segments, query=query)
-    # <<< BENCH SEAM END
     print(query_for_entity_retrieval)
     print(f"Retrieved Text Segments {entity_retrieved_segments}")
     print(query_for_visual_retrieval)

@@ -64,11 +64,6 @@ def frame_times(segment_times_info, **kw):
     return _apply("frame_times", segment_times_info, **kw)
 
 
-def segments(retrieved, **kw):
-    """SELECT. The retrieved segment ids, after the entity/visual union."""
-    return _apply("segments", retrieved, **kw)
-
-
 def evidence(prompt, **kw):
     """OUTPUT. The assembled context immediately before the answerer reads it."""
     return _apply("evidence", prompt, **kw)
