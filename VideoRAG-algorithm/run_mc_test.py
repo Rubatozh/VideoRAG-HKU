@@ -9,9 +9,7 @@ os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 import torch
-# faster-whisper (ctranslate2) and PyTorch both load cuDNN in-process; after Whisper
-# runs on GPU, torch's cuDNN conv3d in ImageBind fails ("unable to find an engine").
-# Disabling torch cuDNN forces native conv3d, sidestepping the conflict. Verified fix.
+# torch cuDNN disabled to avoid a conv3d engine conflict with faster-whisper's cuDNN
 torch.backends.cudnn.enabled = False
 import tiktoken
 from videorag.videorag import VideoRAG, QueryParam

@@ -4,7 +4,6 @@ warnings.filterwarnings("ignore")
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("openai").setLevel(logging.WARNING)
 
-# --- API key from user's config file ---
 os.environ["OPENAI_API_KEY"] = open(os.path.expanduser("~/.config/openai/api_key")).read().strip()
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -86,7 +85,6 @@ if __name__ == "__main__":
     vr2.llm.cheap_model_func = track(vr2.llm.cheap_model_func)
     vr2.load_caption_model(debug=False)
     q = PICK["question"]
-    # include candidates so the open-ended answer can address the MC options
     cand = "\n".join(f"({i}) {c}" for i, c in enumerate(PICK["candidates"]))
     query_text = f"{q}\nOptions:\n{cand}\nExplain which option is correct and why."
     param = QueryParam(mode="videorag")
