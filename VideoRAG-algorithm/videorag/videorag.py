@@ -63,6 +63,7 @@ except Exception:                       # pragma: no cover
         frame_times = staticmethod(lambda v, **k: v)
         segments = staticmethod(lambda v, **k: v)
         evidence = staticmethod(lambda v, **k: v)
+        segment_pool_frames = staticmethod(lambda v, **k: None)
 # <<< BENCH SEAM END
 
 
@@ -251,6 +252,11 @@ class VideoRAG:
             captions = manager.dict()
             error_queue = manager.Queue()
             
+            # >>> BENCH SEAM BEGIN (multimodal-RAG) -- strip this block to revert
+            # INPUT POOL. ImageBind's segment clips otherwise read the source
+            # video directly, bypassing the pool the captioner is bound to.
+            pool_frames = _bench.segment_pool_frames(video_path)
+            # <<< BENCH SEAM END
             process_saving_video_segments = multiprocessing.Process(
                 target=saving_video_segments,
                 args=(
@@ -261,6 +267,7 @@ class VideoRAG:
                     segment_times_info,
                     error_queue,
                     self.video_output_format,
+                    pool_frames,
                 )
             )
             

@@ -58,3 +58,14 @@ def frames_for(frame_times, **kw):
         return None                       # <- the upstream path, unchanged
     _FIRED["frames_for"] = _FIRED.get("frames_for", 0) + 1
     return fn(frame_times, **kw)
+
+
+def segment_pool_frames(video_path, **kw):
+    """PIXELS. Return (times, jpeg_paths) covering `video_path` for
+    ImageBind's segment clips, or None to keep saving_video_segments
+    reading straight from the source video."""
+    fn = _HOOKS.get("segment_pool_frames")
+    if fn is None:
+        return None                       # <- the upstream path, unchanged
+    _FIRED["segment_pool_frames"] = _FIRED.get("segment_pool_frames", 0) + 1
+    return fn(video_path, **kw)
